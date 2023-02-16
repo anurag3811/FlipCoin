@@ -88,9 +88,9 @@ console.log(arr1);
       <div class="col col-3">Date</div>
       <div class="col col-4">Receiver</div>
     </li>
-  {arr1? (arr1.map((entry) => {
+  {arr1? (arr1.map((entry, index) => {
     return (
-      <li class="table-row text-black ">
+      <li class="table-row text-black " key = {index}>
       <div class="col col-2 text-black" data-label="Customer Name">{entry.from}</div>
       <div class="col col-3 text-black" data-label="Amount">{(new Date(parseInt(entry.timestamp)*1000)).toDateString()}</div>
       <div class="col col-4 text-black" data-label="Payment Status">{entry.to}</div>
