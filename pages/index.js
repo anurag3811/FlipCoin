@@ -8,28 +8,49 @@ import { useWeb3Contract } from "react-moralis";
 import { useMoralis } from "react-moralis";
 import { ethers } from "ethers";
 import main from "../contracts/main.json"
+import ProductCard from '../components/ProductCard'; 
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   const { Moralis, isWeb3Enabled, chainId: chainIdHex, account } = useMoralis();
-  // const chainId = parseInt(chainIdHex);
-  const mainaddress = "0x530Ff5e44aa56F8192b273555A6796639C043550";
-  const [query, setquery] = useState("");
-  const [arr1, setarr1] = useState([]);
+  const mainaddress = "0xFb13a718757131B902E0F963d5916C1578B7dFe6";
+  const [bal, setbal] = useState(null);
+  const [all, setall] = useState(null);
 
-  const { runContractFunction: getRecords, isFetching, isLoading } = useWeb3Contract({
+
+  const { runContractFunction: showBalance1, isFetching, isLoading } = useWeb3Contract({
     abi: main,
     contractAddress: mainaddress,
-    functionName: "getRecords",
-    params: { item:query },
+    functionName: "getBalance",
+    params: {account},
   });
 
+  const { runContractFunction: getAllProducts, isFetching1, isLoading1 } = useWeb3Contract({
+    abi: main,
+    contractAddress: mainaddress,
+    functionName: "getAllProducts",
+    params: {},
+  });
+
+  const balanceStyle = {
+    backgroundColor: '#007bff',
+    color: '#fff',
+    padding: '10px 20px',
+    borderRadius: '4px',
+    fontSize: '24px',
+    fontWeight: 'bold',
+    margin: '20px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.2)',
+    textAlign: 'center',
+  };
+
   async function updateUIValues() {
-    const finalarr = await getRecords();
-    // const visitortemp = await getprofiles(account);
-    setarr1(finalarr);
-    // setvisitor(visitortemp);
+    const newbal = await showBalance1();
+    setbal(newbal.toString());
+
+    const newall = await getAllProducts();
+    setall(newall);
   }
 
   useEffect(() => {
@@ -48,59 +69,34 @@ export default function Home() {
     }
   };
 
-  
-console.log(arr1);
+console.log(all == null ? "": all['0'][1]);
   return (
     <>
-<Header />
-<div className='flex justify-center'>
-<input
-          placeholder="Search by Item Number"
-          onChange={(e) => setquery(e.target.value)}
-          className="p-4 rounded-full  w-96 mt-8 mb-14"
-          style={{ backgroundColor: "#272727" }}
-        />
-        <button className=' ml-4 pb-8 px-5 mt-10 py-4 rounded-2xl border-solid border-2 border-white h-8'
-                // className="underline"
-                disabled={isLoading || isFetching}
-                // value={link}
-                onClick={async (e) => {
-                  // setremover(e.target.value);
-                  await getRecords({
-                    onSuccess: handleSuccess,
-                    onError: (error) => console.log(error),
-                  });
-                  updateUIValues();
-                }}
-              >
-                {isLoading || isFetching ? (
-                  <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full "></div>
-                ) : (
-                  "Search"
-                )}
-              </button></div>
-
-  <div class="container">
-  <ul class="responsive-table">
-    <li class="table-header">
-      
-      <div class="col col-2">Sender</div>
-      <div class="col col-3">Date</div>
-      <div class="col col-4">Receiver</div>
-    </li>
-  {arr1? (arr1.map((entry, index) => {
-    return (
-      <li class="table-row text-black " key = {index}>
-      <div class="col col-2 text-black" data-label="Customer Name">{entry.from}</div>
-      <div class="col col-3 text-black" data-label="Amount">{(new Date(parseInt(entry.timestamp)*1000)).toDateString()}</div>
-      <div class="col col-4 text-black" data-label="Payment Status">{entry.to}</div>
-    </li>
-    )
-  })):(<li><div>Search please</div><div>Search please</div><div>Search please</div></li>)}
-    
-  </ul>
-</div>
+    <Header />
+    <div style={balanceStyle}>
+        Balance: {bal == null ? "Loading..." : `${bal} FlipCoins`}
+      </div>
+    {all ? (
+        <div className="pb-20 grid xl:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-10 w-full ml-2">
+          {all.map((product, index) => (
+            <ProductCard
+              key={index}
+              productId={product[0].toString()}
+              name={product[1].toString()}
+              price={product[2].toString()}
+              cashbackAmount={product[3].toString()}
+              maxRedeemableTokens={product[4].toString()}
+              imageUrl={product[5].toString()}
+            />
+          ))}
+        </div>
+      ) : (
+        <div>LOADING ... </div>
+      )}
     </>
   )
+
+
+
 }
 
